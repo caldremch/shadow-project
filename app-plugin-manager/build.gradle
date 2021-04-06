@@ -1,0 +1,89 @@
+import com.caldremch.android.version.Shadow
+
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'com.caldremch.android.version'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId project.SAMPLE_HOST_APP_APPLICATION_ID
+
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName project.VERSION_NAME
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+def createDuplicateApkTask(buildType) {
+    //输入目录
+    def apkDir = file("${getBuildDir()}/outputs/apk/$buildType")
+    //创建爱你一个复制的任务
+    return tasks.create("duplicate${buildType.capitalize()}ApkTask", Copy) {
+        group = 'build' //在 gradle 中属于哪个模块, 如 build install other 等
+        description = "复制一个app-plugin-manager-${buildType}.apk用于测试目的"
+        from(apkDir) {
+            include("app-plugin-manager-${buildType}.apk")
+            rename { "app-plugin-manager.apk" }
+        }
+        into(apkDir)
+    }
+}
+
+//todo 创建复制到指定目录的任务
+
+tasks.whenTaskAdded { task ->
+    if (task.name == "assembleDebug") {
+        def createTask = createDuplicateApkTask("debug")
+        task.finalizedBy(createTask)
+    }
+}
+
+
+
+dependencies {
+//
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+//    implementation 'androidx.core:core-ktx:1.3.1'
+//    implementation 'androidx.appcompat:appcompat:1.2.0'
+//    implementation 'com.google.android.material:material:1.2.1'
+//    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+//    testImplementation 'junit:junit:4.+'
+//    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+//
+//    //shadow
+//    implementation "com.tencent.shadow.dynamic:manager:${shadow_version}"
+//    implementation "com.tencent.shadow.core:manager:${shadow_version}"
+//    implementation "com.tencent.shadow.dynamic:loader:${shadow_version}"
+////    implementation project(":sample-constant")
+//    compileOnly "com.tencent.shadow.core:common:${shadow_version}"
+//    compileOnly "com.tencent.shadow.dynamic:host:${shadow_version}"
+
+    implementation 'com.tencent.shadow.dynamic:dynamic-manager'
+    implementation 'com.tencent.shadow.core:manager'
+    implementation 'com.tencent.shadow.dynamic:dynamic-loader'
+//    implementation project(":sample-constant")
+
+    compileOnly 'com.tencent.shadow.core:common-debug'
+    compileOnly 'com.tencent.shadow.dynamic:dynamic-host-debug'
+}

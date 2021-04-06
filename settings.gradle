@@ -1,0 +1,26 @@
+rootProject.name = "shadow-project"
+
+includeBuild './version-plugin'
+
+
+includeBuild 'sdk/coding'
+includeBuild 'sdk/core'
+includeBuild 'sdk/dynamic'
+
+include ':app-host'
+include ':app-host-lib'
+include ':app-plugin-a'
+include ':app-plugin-b'
+include ':app-plugin-loader'
+include ':app-plugin-runtime'
+include ':app-plugin-manager'
+
+
+
+
+//project(':app-host').projectDir = file('./shadow-project/app-host')
+//project(':app-plugin-a').projectDir = file('./shadow-project/app-plugin-a')
+//project(':app-plugin-b').projectDir = file('./shadow-project/app-plugin-b')
+//project(':app-plugin-loader').projectDir = file('./shadow-project/app-plugin-loader')
+//project(':app-plugin-runtime').projectDir = file('./shadow-project/app-plugin-runtime')
+//project(':app-plugin-manager').projectDir = file('./shadow-project/app-plugin-manager')

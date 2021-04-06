@@ -1,0 +1,38 @@
+apply plugin: 'com.tencent.shadow.plugin'
+shadow {
+    transform {
+//        useHostContext = ['abc']
+    }
+
+    packagePlugin {
+        pluginTypes {
+            debug {
+                loaderApkConfig = new Tuple2('app-plugin-loader-debug.apk', ':app-plugin-loader:assembleDebug')
+                runtimeApkConfig = new Tuple2('app-plugin-runtime-debug.apk', ':app-plugin-runtime:assembleDebug')
+                pluginApks {
+                    pluginApk1 {
+                        businessName = 'app-plugin-a'
+                        partKey = 'app-plugin-a'
+                        buildTask = ':app-plugin-a:assembleDebug'
+                        apkName = 'app-plugin-a-debug.apk'
+                        apkPath = 'app-plugin-a/build/outputs/apk/debug/app-plugin-a-debug.apk'
+                        hostWhiteList = ["com.caldremch.android.host.lib"]
+                    }
+                
+                }
+            }
+           
+        }
+
+        loaderApkProjectPath = 'app-plugin-loader'
+        runtimeApkProjectPath = 'app-plugin-runtime'
+
+        archiveSuffix = System.getenv("PluginSuffix") ?: ""
+        archivePrefix = 'plugin'
+        destinationDir = "${getRootProject().getBuildDir()}"
+
+        version = 4
+        compactVersion = [1, 2, 3]
+        uuidNickName = "1.1.5"
+    }
+}

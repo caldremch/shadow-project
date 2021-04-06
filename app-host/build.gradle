@@ -1,0 +1,116 @@
+import com.caldremch.android.version.Shadow
+
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'com.caldremch.android.version'
+}
+
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId Shadow.applicationId
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName project.VERSION_NAME
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug{
+            buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
+        }
+    }
+
+    sourceSets {
+        debug {
+            assets.srcDir('build/generated/assets/app-plugin-manager/debug/')
+            assets.srcDir('build/generated/assets/plugin-zip/debug/')
+        }
+
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation 'commons-io:commons-io:2.5'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.3.1'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    //shadow compile
+//    implementation "com.tencent.shadow.core:common:${shadow_version}"
+//    implementation "com.tencent.shadow.dynamic:høost:${shadow_version}"
+    implementation project(':app-host-lib')
+
+    implementation 'com.tencent.shadow.core:common'
+    implementation 'com.tencent.shadow.dynamic:dynamic-host'
+}
+
+//插件的执行, 真的没那么只能, 如果你放在 android{}之前, 那么读取 BaseExtension 是读取不到的, 如果是放在这个位置, 就可以
+//apply plugin: LaboratoryPlugin
+
+def createCopyTask(projectName, buildType, name, apkName, inputFile, taskName) {
+    def outputFile = file("${getBuildDir()}/generated/assets/${name}/${buildType}/${apkName}")
+    outputFile.getParentFile().mkdirs()
+    return tasks.create("copy${buildType.capitalize()}${name.capitalize()}Task", Copy) {
+        group = 'build'
+        description = "复制${name}到assets中."
+        from(inputFile.getParent()) {
+            include(inputFile.name)
+            rename { outputFile.name }
+        }
+        into(outputFile.getParent())
+
+    }.dependsOn("${projectName}:${taskName}")
+}
+
+def generateAssets(generateAssetsTask, buildType) {
+    def moduleName = 'app-plugin-manager'
+    def pluginManagerApkFile = file("${project(":${moduleName}").getBuildDir()}/outputs/apk/${buildType}/${moduleName}-${buildType}.apk")
+    generateAssetsTask.dependsOn createCopyTask(
+            ":${moduleName}", buildType, moduleName, "${moduleName}.apk", pluginManagerApkFile, "assemble${buildType.capitalize()}"
+    )
+
+
+    //这里只针对了单个插件的设置
+    def pluginZip = file("${getRootProject().getBuildDir()}/plugin-${buildType}.zip")
+    generateAssetsTask.dependsOn createCopyTask(
+            ':app-plugin-a',
+            buildType,
+            'plugin-zip',
+            "plugins.zip",
+            pluginZip,
+            "package${buildType.capitalize()}Plugin"
+    )
+
+}
+
+//用于调试, 每次生成 assets 时, 都添加 其他模块的 apk 进来(比如 app-plugin-manager)
+tasks.whenTaskAdded { task ->
+    if (task.name == "generateDebugAssets") {
+        generateAssets(task, "debug")
+    }
+}

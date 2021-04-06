@@ -1,0 +1,63 @@
+//import  com.caldremch.android.plugin.version.Shadow
+import  com.caldremch.android.version.Shadow
+plugins {
+//    id 'com.caldremch.android.plugin.version'
+    id 'com.caldremch.android.version'
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId project.SAMPLE_HOST_APP_APPLICATION_ID
+
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName project.VERSION_NAME
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+//    implementation Shadow.core_loader
+//    implementation Shadow.dynamic_loader
+//    implementation Shadow.dynamic_loader_impl
+//    implementation project(path: ':app-host-lib')
+//
+//    compileOnly Shadow.core_runtime
+//    compileOnly Shadow.core_activity_container
+//    compileOnly Shadow.core_common
+//    compileOnly Shadow.dynamic_host
+
+
+
+    implementation 'com.tencent.shadow.core:loader'
+    implementation 'com.tencent.shadow.dynamic:dynamic-loader'
+    implementation 'com.tencent.shadow.dynamic:dynamic-loader-impl'
+    implementation project(path: ':app-host-lib')
+
+    compileOnly 'com.tencent.shadow.core:runtime-debug'
+    compileOnly 'com.tencent.shadow.core:activity-container-debug'
+    compileOnly 'com.tencent.shadow.core:common-debug'
+    //下面这行依赖是为了防止在proguard的时候找不到LoaderFactory接口
+    compileOnly 'com.tencent.shadow.dynamic:dynamic-host-debug'
+}
+
+preBuild.dependsOn(":app-host-lib:jarDebugPackage")
